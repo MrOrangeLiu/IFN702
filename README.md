@@ -1,6 +1,6 @@
 # Author
-Student Name: Qinyu Liu
-Student Number: N9325247
+Name: Qinyu Liu
+Number: N9325247
 Project: IFN702
 
 # Prerequisites
