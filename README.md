@@ -38,8 +38,8 @@ Then run the server hosted on http://localhost:8000: <br>
 python manage.py runserver
 
 # The Screenshots
-[Homepage](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/homepage.png)
+![Homepage](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/homepage.png)
 
-[My Files](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/myfiles.png)
+![My Files](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/myfiles.png)
 
-[Search](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/search.png)
+![Search](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/search.png)
