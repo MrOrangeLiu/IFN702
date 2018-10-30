@@ -1,0 +1,6 @@
+div.content {
+	position: absolute;
+	margin: 10px 0px 0px 100px;
+	min-height: 40em;
+	max-width: 60em;
+}

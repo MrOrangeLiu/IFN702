@@ -1,0 +1,101 @@
+{% extends 'dashboard/base.html' %}
+{% load staticfiles %}
+{% block title %}Dashboard{% endblock %}
+
+{% block nav_upload_active %}active{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href="{% static 'bootstrap_table/bootstrap-table.min.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-editable.css' %} ">
+{% endblock %}
+
+{% block content %}
+
+<!-- main-container start -->
+<div class="iner-fluid main-container">
+  <div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+      <div class="panel-heading">File Upload</div>
+      <div class="panel-body">
+        <form id="upload_form" class="form-inline" method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <label class="sr-only" for="chat_file">File upload</label>
+            <div class="input-group">
+              {% for field in form_field %}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                <p class="text-danger">{{ field.errors.as_text }}</p>
+              {% endfor %}
+              <span class="pull-left text-danger"></span>
+            </div>
+          </div>
+          <div class="row" style="margin-top:2em;">
+            <span id="upload_error" class="text-success pull-left"></span>
+            <input type="submit" class="btn btn-success w90" value="Upload">
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div><!-- ./end main-container-->
+
+<div class="row">
+  <div id="file_ignored_list" class="col-xs-6 text-danger"></div>
+  <div id="file_list" class="col-xs-6 text-success"></div>
+</div>
+
+
+{% endblock %}
+{% block page_header %} Upload {% endblock %}
+{% block page_description %} File Upload {% endblock %}
+
+{% block script %}
+
+<script type="text/javascript">
+  $("#upload_form").submit(function() {
+      // Front-end empty check
+      // Empty error message first
+      $("#upload_error").text('');
+
+      // Async submit
+      var data = new FormData($(this).get(0));
+      $.ajax({
+        url: "{% url 'dashboard:file_upload' %}",
+        type: "POST",
+        data: data,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function(data) {
+          console.log(data);
+          if(data['status'] == 'SUCCESS') {
+            // Insert the new comment
+            $("#upload_error").text('Your file has been successfully uploaded');
+            not_accepted_list = data['file_not_accepted'];
+            accepted_list = data['file_accepted'];
+            for(file in not_accepted_list) {
+              var file_html = "<p>" + file + "</p>"
+              $("#file_ignored_list").prepend(file_html);
+            // initTable();
+            }
+            for(file in accepted_list) {
+              var file_html = "<p>" + file + "</p>"
+              $("#file_list").prepend(file_html);
+            // initTable();
+            }
+          } else {
+            // Display error messages
+            $("#comment_error").text(data['messages']);
+          }
+          
+        },
+        error: function(xhr) {
+          console.log(xhr);
+        }
+      });
+      return false;
+    });
+</script>
+
+{% endblock %}

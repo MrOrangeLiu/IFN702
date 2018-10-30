@@ -1,0 +1,52 @@
+{% extends 'dashboard/base.html' %}
+{% load staticfiles %}
+{% block title %}Dashboard{% endblock %}
+
+{% block nav_perform_active %}active{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href="{% static 'bootstrap_table/bootstrap-table.min.css' %}">
+{% endblock %}
+
+{% block page_header %} Perform {% endblock %}
+{% block page_description %} Perform the algorithm {% endblock %}
+
+{% block content %}
+
+{% if file_selected %}
+	<div class="container">
+		<div class="row">
+			<h3 class="text-success">Selected Files: {{ file_selected|truncatechars:50 }}</h3>
+		</div>
+		<div class="row">
+			<div class="col-md-6 col-xs-8">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Register</h3>
+					</div>
+					<div class="panel-body">
+						<!-- If the action is empty, the action is redering to itself -->
+						<form action="" method="POST">
+							{% csrf_token %}
+							{% for field in parameter_form %}
+								<div class="form-group">
+								  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+								  {{ field }}
+								  <p class="text-danger">{{ field.errors.as_text }}</p>
+								</div>
+							{% endfor %}
+							<span class="pull-left text-danger">{{ reg_form.non_field_errors }}</span>
+							<input type="submit" name="execute" value="Execute" class="btn btn-primary pull-right">
+						</form>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+
+{% else %}
+	<h3 class="text-danger">No files selected, please go to your files and select files you want to perform the algorithm.</h3>
+{% endif %}
+
+{% endblock %}

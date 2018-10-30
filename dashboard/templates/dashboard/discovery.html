@@ -1,0 +1,407 @@
+{% extends 'dashboard/base.html' %}
+{% load staticfiles %}
+{% block title %}Dashboard{% endblock %}
+
+{% block nav_discovery_active %}active{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href="{% static 'bootstrap_table/bootstrap-table.min.css' %}">
+<script src="https://code.highcharts.com/highcharts.js"></script>
+{% endblock %}
+
+{% block page_header %} Discovery {% endblock %}
+{% block page_description %} Query Relevant Result Discovery {% endblock %}
+
+{% block content %}
+<!-- main-container start -->
+<div class="iner-fluid main-container">
+  <div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+      <div class="panel-heading">File Upload</div>
+      <div class="panel-body">
+        <form id="upload_form" class="form-inline" method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row">
+            <label class="sr-only" for="chat_file">File upload</label>
+            <div class="input-group">
+              {% for field in form_field %}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                <p class="text-danger">{{ field.errors.as_text }}</p>
+              {% endfor %}
+              <span class="pull-left text-danger">{{ login_form.non_field_errors }}</span>
+            </div>
+            <input type="submit" class="btn btn-primary" value="Upload">
+          </div>
+          <div class="row">
+            <span id="upload_error" class="text-success pull-left"></span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+      <div class="panel-heading">Uploaded Results</div>
+      <div class="panel-body">
+      	<ul class="list-group">
+      	  {% for file in result_files %}
+            {% if file_selected == file.pk|safe %}
+              <li class="list-group-item active"><a href="{% url 'dashboard:discovery'%}?id={{ file.pk }}" style="color: #000">{{ file.file_name }}</a></li>
+            {% else %}
+              <li class="list-group-item"><a href="{% url 'dashboard:discovery'%}?id={{ file.pk }}" style="color: #000">{{ file.file_name }}</a></li>
+            {% endif %}
+      	  {% empty %}
+      	  	No files found
+      	  {% endfor %}
+      	</ul>
+      </div>
+  	</div>
+  </div>
+
+  {# If a file is seleted, then show the search and table, otherwise they are hidden #}
+  {% if file_selected %}
+  <div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+      <div class="panel-heading">Integrated Search</div>
+      <div class="panel-body">
+      	<form id="form_search" action="{% url 'dashboard:discovery' %}?id={{ file_selected }}" method="POST">
+      		{% csrf_token %}
+          <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">{{ search_field.weight_input.label }}</label>
+            <div class="col-sm-3">
+              {{ search_field.weight_select }}
+            </div>
+            <div class="col-sm-5">
+              {{ search_field.weight_input }}
+            </div>
+            <div class="col-sm-2 text-danger" id="weight_error">
+              {{ search_field.weight_input.errors|safe }}
+              {{ search_field.weight_select.errors|safe }}
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">{{ search_field.min_support_input.label }}</label>
+            <div class="col-sm-3">
+              {{ search_field.min_support_select }}
+            </div>
+            <div class="col-sm-5">
+              {{ search_field.min_support_input }}
+            </div>
+            <div class="col-sm-2 text-danger" id="min_support_error">
+              <p>{{ search_field.min_support_input.errors }}</p>
+              <p>{{ search_field.min_support_select.errors }}</p>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputPassword" class="col-sm-2 col-form-label">{{ search_field.items_input.label }}</label>
+            <div class="col-sm-3">
+              {{ search_field.items_select }}
+            </div>
+            <div class="col-sm-5">
+              {{ search_field.items_input }}
+            </div>
+            <div class="col-sm-2 text-danger" id="items_error">
+              <p>{{ search_field.items_input.errors }}</p>
+              <p>{{ search_field.items_select.errors }}</p>
+            </div>
+          </div>
+          <div class="form-group row">
+            <div class="col-sm-10 pull-right text-danger">
+              {{ search_field.non_field_errors|safe }}
+              <input type="button" id="perform_search" value="Search" class="btn btn-primary pull-right">
+            </div>
+          </div>
+
+          <!-- {{ table_with_weight }} -->
+          <!-- {{ table_without_weight }} -->
+          <input type="hidden" id="table_data" name="table_data" value="{{ table_with_weight }}">
+      	</form>
+      </div>
+  	</div>
+  </div>
+  <div class="panel-body" style="padding-bottom:0px;">
+    <div class="panel panel-default">
+      <div class="panel-heading">Table</div>
+      <div class="panel-body">
+        <div id="toolbar">
+    <!--       <button id="remove" class="btn btn-danger" disabled>
+            <i class="glyphicon glyphicon-remove"></i> Delete
+          </button> -->
+        </div>
+        <table id="table"
+               data-toolbar="#toolbar"
+               data-search="true"
+               data-show-refresh="true"
+               data-show-columns="true"
+               data-show-export="true"
+               data-detail-view="true"
+               data-detail-formatter="detailFormatter"
+               data-minimum-count-columns="2"
+               data-show-pagination-switch="true"
+               data-pagination="true"
+               data-id-field="id"
+               data-page-list="[10, 25, 50, 100, ALL]"
+               data-show-footer="false"
+               data-side-pagination="client"
+               data-response-handler="responseHandler">
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div><!-- ./end main-container-->
+
+<div id="container"></div>
+
+<!-- loading start -->
+<div class="modal fade" id="loading" tabindex="-1" role="dialog">
+  <div class="modal-body">
+    <div class="loadEffect">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="loading-text" id="loading_text"></div>
+  </div>
+</div><!-- ./end loading -->
+<!-- affirm -->
+<div id="affirm_box">
+{#    <div id="title_box"><span id="title_text">Reminder</span>#}
+{#      <span id="affirm_close">&times;</span>#}
+{#    </div>#}
+  <div id="content_box"></div>
+</div><!--./end -->
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'bootstrap_table/bootstrap-table.min.js' %}"></script>
+<script src="{% static 'bootstrap_table/bootstrap-table-zh-CN.min.js' %}"></script>
+<script src="{% static 'bootstrap_table/bootstrap-table-export.js' %}"></script>
+<script src="{% static 'bootstrap_table/tableExport.js' %}"></script>
+<script src="{% static 'bootstrap_table/bootstrap-table-editable.js' %}"></script>
+<script src="{% static 'bootstrap_table/bootstrap-editable.js' %}"></script>
+
+<script>
+  var $table = $('#table'),
+      $remove = $('#remove'),
+      selections = [];
+      table_data = [];
+
+  function initTable() {
+    $table.bootstrapTable({
+      height: getHeight(),
+      columns: [
+        [
+          {
+            field: 'state',
+            checkbox: true,
+            rowspan: 2,
+            align: 'center',
+            valign: 'middle'
+          }, {
+            title: 'Item Detail',
+            colspan: 3,
+            align: 'center'
+          }
+        ],
+        [
+          {
+            field: 'words',
+            title: 'Itemset',
+            sortable: true,
+            editable: true,
+            footerFormatter: totalNameFormatter,
+            align: 'center'
+          }, {
+            field: 'support',
+            title: 'Support',
+            sortable: true,
+            editable: true,
+            footerFormatter: totalNameFormatter,
+            align: 'center'
+          }, {
+            field: 'weight',
+            title: 'Weight',
+            sortable: true,
+            editable: true,
+            footerFormatter: totalNameFormatter,
+            align: 'center'
+          }
+        ]
+      ],
+      data: {{ table_with_weight|safe }},
+    });
+    // sometimes footer render error.
+    setTimeout(function () {
+        $table.bootstrapTable('resetView');
+    }, 200);
+    $table.on('check.bs.table uncheck.bs.table ' +
+              'check-all.bs.table uncheck-all.bs.table', function () {
+        $remove.prop('disabled', !$table.bootstrapTable('getSelections').length);
+
+        // save your data, here just save the current page
+        selections = getIdSelections();
+        // push or splice the selections if you want to save all data selections
+    });
+    $table.on('expand-row.bs.table', function (e, index, row, $detail) {
+        if (index % 2 == 1) {
+            $detail.html('Loading from ajax request...');
+            $.get('LICENSE', function (res) {
+                $detail.html(res.replace(/\n/g, '<br>'));
+            });
+        }
+    });
+    $table.on('all.bs.table', function (e, name, args) {
+        console.log(name, args);
+    });
+    $remove.click(function () {
+      var ids = getIdSelections();
+      $table.bootstrapTable('remove', {
+        field: 'id',
+        values: ids
+      });
+      $remove.prop('disabled', true);
+    });
+    $(window).resize(function () {
+        $table.bootstrapTable('resetView', {
+            height: getHeight()
+        });
+    });
+  }
+
+  function getIdSelections() {
+      return $.map($table.bootstrapTable('getSelections'), function (row) {
+          return row.id
+      });
+  }
+
+  function responseHandler(res) {
+      $.each(res.rows, function (i, row) {
+          row.state = $.inArray(row.id, selections) !== -1;
+      });
+      return res;
+  }
+
+  function detailFormatter(index, row) {
+      var html = [];
+      $.each(row, function (key, value) {
+          html.push('<p><b>' + key + ':</b> ' + value + '</p>');
+      });
+      return html.join('');
+  }
+
+  function operateFormatter(value, row, index) {
+    return [
+        '<a class="like" href="javascript:void(0)" title="Like">',
+        '<i class="glyphicon glyphicon-heart"></i>',
+        '</a>  ',
+        '<a class="remove" href="javascript:void(0)" title="Remove">',
+        '<i class="glyphicon glyphicon-remove"></i>',
+        '</a>'
+    ].join('');
+  }
+
+  window.operateEvents = {
+      'click .like': function (e, value, row, index) {
+          alert('You click like action, row: ' + JSON.stringify(row));
+      },
+      'click .remove': function (e, value, row, index) {
+          $table.bootstrapTable('remove', {
+              field: 'id',
+              values: [row.id]
+          });
+      }
+  };
+
+  function totalTextFormatter(data) {
+      return 'Total';
+  }
+
+  function totalNameFormatter(data) {
+      return data.length;
+  }
+
+  function totalPriceFormatter(data) {
+      var total = 0;
+      $.each(data, function (i, row) {
+          total += +(row.price.substring(1));
+      });
+      return '$' + total;
+  }
+
+  function getHeight() {
+      return $(window).height() - $('h1').outerHeight(true);
+  }
+
+  $(function () {
+    initTable()
+  })
+</script>
+
+<script>
+  $("#upload_form").submit(function() {
+      // Front-end empty check
+      // Empty error message first
+      $("#upload_error").text('');
+
+      // Async submit
+      var data = new FormData($(this).get(0));
+      $.ajax({
+        url: "{% url 'fileuploads:upload_result' %}",
+        type: "POST",
+        data: data,
+        cache: false,
+        processData: false,
+        contentType: false,
+        success: function(data) {
+          console.log(data);
+          if(data['status'] == 'SUCCESS') {
+            // Insert the new comment
+            $("#upload_error").text('Your file has been successfully uploaded');
+            table_data = data['table_data'];
+            initTable();
+          } else {
+            // Display error messages
+            $("#comment_error").text(data['messages']);
+          }
+          
+        },
+        error: function(xhr) {
+          console.log(xhr);
+        }
+      });
+      return false;
+    });
+</script>
+
+<script>
+
+	$('#perform_search').click(function() {
+
+		var weight_input = $('#weight_input').val().trim();
+		if(weight_input == '') {
+			$('#weight_error').text("Empty Error");
+			return;
+		}
+		var min_support_input = $('#min_support_input').val().trim();
+		if(min_support_input == '') {
+			$('#min_support_error').text("Empty Error");
+			return;
+		}
+
+		var weight_op = $('#weight option:selected').val();
+		var min_sup_op = $('#min_support option:selected').val();
+		var items_op = $('#items option:selected').val();
+
+		$('#form_search').submit()
+	});
+	
+</script>
+
+{% endblock %}
