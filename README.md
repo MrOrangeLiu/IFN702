@@ -19,7 +19,20 @@ The path is where the new environment will be saved on your computer.
 The final step in setting up your virtual environment is to activate it:
 $ source ~/.virtualenvs/djangodev/bin/activate
 
+Make sure you have installed MongoDB.
+
 # Installation
 Clone the repository to your local machine, and then:
 pip install -r requirements.txt
 
+# Configuration
+Rename settings.sample.py to settings.py__
+Set your own SECRET_KEY in that file__
+Then Set DATABASES name to your database's name__
+
+# Run
+First launch MongoDB:__
+mongod__
+
+Then run the server hosted on http://localhost:8000:__
+python manage.py runserver
