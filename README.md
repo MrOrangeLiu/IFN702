@@ -22,17 +22,17 @@ $ source ~/.virtualenvs/djangodev/bin/activate
 Make sure you have installed MongoDB.
 
 # Installation
-Clone the repository to your local machine, and then:
+Clone the repository to your local machine, and then: <br>
 pip install -r requirements.txt
 
 # Configuration
-Rename settings.sample.py to settings.py__
-Set your own SECRET_KEY in that file__
-Then Set DATABASES name to your database's name__
+Rename settings.sample.py to settings.py <br>
+Set your own SECRET_KEY in that file <br>
+Then Set DATABASES name to your database's name
 
 # Run
-First launch MongoDB:__
-mongod__
+First launch MongoDB: <br>
+mongod
 
-Then run the server hosted on http://localhost:8000:__
+Then run the server hosted on http://localhost:8000: <br>
 python manage.py runserver
