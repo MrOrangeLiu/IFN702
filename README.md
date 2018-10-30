@@ -36,3 +36,6 @@ mongod
 
 Then run the server hosted on http://localhost:8000: <br>
 python manage.py runserver
+
+# The Screenshots
+[Homepage](IFN702/screenshots/homepage.png)
