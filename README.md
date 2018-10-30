@@ -1,7 +1,9 @@
 # Author
-Name: Qinyu Liu
-Number: N9325247
-Project: IFN702
+<ul>
+  <li>Name: Qinyu Liu</li>
+  <li>ID: N9325247</li>
+  <li>Project: IFN702</li>
+</ul>
 
 # Prerequisites
 It’s a good idea to keep all your virtual environments in one place, for example in .virtualenvs/ in your home directory.
