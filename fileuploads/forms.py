@@ -65,8 +65,8 @@ class ParameterForm(forms.Form):
 class SearchForm(forms.Form):
 
 	Options1 = [('gt', 'Greater Than'), ('lt', 'Less Than'), ('eq', 'Equal To')]
-	Options2 = [('contains', 'Contain'), ('eq', 'Equal To')]
-	weight_input = forms.DecimalField(label="Weight", initial=0, max_digits=3, decimal_places=2, required=True,  
+	Options2 = [('contains', 'Contains'), ('eq', 'Equal To')]
+	weight_input = forms.DecimalField(label="Weight", initial=0, required=True,  
 				widget=forms.TextInput(attrs={
 					'id': 'weight_input', 
 					'name': 'weight_input', 
@@ -74,7 +74,7 @@ class SearchForm(forms.Form):
 					}))
 	weight_select = forms.ChoiceField(label="Weight Operation", widget=forms.Select, choices=Options1)
 
-	min_support_input = forms.DecimalField(label="Minimum Support", initial=0, max_digits=3, decimal_places=2, required=True,  
+	min_support_input = forms.DecimalField(label="Minimum Support", initial=0, required=True,  
 				widget=forms.TextInput(attrs={
 					'id': 'min_support_input', 
 					'name': 'min_support_input', 
@@ -95,6 +95,16 @@ class SearchForm(forms.Form):
 			self.request = kwargs.pop('request')
 		super(SearchForm, self).__init__(*args, **kwargs)
 
+	# def clean_weight_input(self):
+	# 	weight_input = self.cleaned_data['weight_input']
+	# 	if not is_float(weight_input):
+	# 		raise forms.ValidationError('Your input has to be numbers')
+
+	# def clean_min_support_input(self):
+	# 	min_support_input = self.cleaned_data['min_support_input']
+	# 	if not is_float(min_support_input):
+	# 		raise forms.ValidationError('Your input has to be numbers')
+
 	def clean(self):
 
 		def search(source, relate, target):
@@ -107,8 +117,8 @@ class SearchForm(forms.Form):
 			return ops[relate](source, target)
 
 		error = ''
-		weight_input = self.cleaned_data['weight_input']
-		min_support_input = self.cleaned_data['min_support_input']
+		weight_input = self.cleaned_data.get('weight_input', None)
+		min_support_input = self.cleaned_data.get('min_support_input', None)
 		items_input = self.cleaned_data['items_input']
 
 		if weight_input == '':
@@ -122,13 +132,6 @@ class SearchForm(forms.Form):
 
 		if not (is_float(weight_input) and is_float(min_support_input)):
 			raise forms.ValidationError('Your input has to be numbers. %s and %s are not.' % (weight_input, min_support_input))
-			
-		w_b, w_decimal = validator_decimal(weight_input, 0, 3, 3)
-		if not w_b:
-			error += 'Weight has to be [0, 1] '
-		m_b, m_decimal = validator_decimal(min_support_input, 0, 1, 3)
-		if not m_b:
-			error += 'Minimum support has to be [0, 3] '
 
 		if error.strip() != '':
 			raise forms.ValidationError(error)
