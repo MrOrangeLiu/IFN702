@@ -47,3 +47,7 @@ python manage.py runserver
 # Test
 python manage.py test login <br>
 python manage.py test dashboard <br>
+Or you can test all: <br>
+python manage.py test <br>
+The test results: <br>
+![Search](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/test.png)
