@@ -43,3 +43,7 @@ python manage.py runserver
 ![My Files](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/myfiles.png)
 
 ![Search](https://raw.githubusercontent.com/MrOrangeLiu/IFN702/master/screenshots/search.png)
+
+# Test
+python manage.py test login <br>
+python manage.py test dashboard <br>
